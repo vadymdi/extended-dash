@@ -19,3 +19,4 @@ def fetch_markets():
 
 if __name__ == "__main__":
     fetch_markets()
+print("✅ Fetch completed")
