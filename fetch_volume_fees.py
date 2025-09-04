@@ -9,6 +9,7 @@ def fetch_volume_fees():
         response = requests.get(API_URL, timeout=30)
         response.raise_for_status()
         markets = response.json()
+        print(markets)
     except Exception as e:
         print(f"❌ Помилка API: {e}")
         markets = []
