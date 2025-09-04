@@ -1,34 +1,35 @@
-import requests
-import pandas as pd
-import os
+name: Fetch Extended Data
 
-API_URL = "https://api.extended.exchange/api/v1/info/markets"
+on:
+  schedule:
+    - cron: "0 6 * * *"  # щодня о 06:00 UTC
+  workflow_dispatch:
 
-def fetch_volume_fees():
-    try:
-        response = requests.get(API_URL, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-        markets = data.get("data", [])
-    except Exception as e:
-        print(f"❌ Помилка API: {e}")
-        markets = []
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
 
-    rows = []
-    for m in markets:
-        rows.append({
-            "market": m.get("name"),
-            "dailyVolume": m.get("marketStats", {}).get("dailyVolume"),
-            "dailyVolumeBase": m.get("marketStats", {}).get("dailyVolumeBase"),
-            "fees": m.get("marketStats", {}).get("fees")  # може бути None
-        })
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    df = pd.DataFrame(rows)
-    os.makedirs("data", exist_ok=True)
-    output_file = "data/volume_fees.csv"
-    df.to_csv(output_file, index=False)
-    print(f"✅ CSV збережено у {output_file}")
-    print(df.head())
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-if __name__ == "__main__":
-    fetch_volume_fees()
+      - name: Install dependencies
+        run: pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Run fetch_volume_fees.py
+        run: python fetch_volume_fees.py
+
+      - name: Commit & push updated CSV if changes exist
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data/volume_fees.csv
+          git diff --cached --quiet || git commit -m "Update volume_fees.csv"
+          git push https://x-access-token:${GH_PAT}@github.com/vadymdi/extended-dash.git HEAD:main
