@@ -1,0 +1,31 @@
+name: Fetch Extended Data
+
+on:
+  schedule:
+    - cron: "0 6 * * *"  # щодня о 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run fetch_markets
+        run: python fetch_markets.py
+
+      - name: Commit & push data
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data/markets.csv
+          git commit -m "Update markets.csv"
+          git push
