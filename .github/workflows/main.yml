@@ -24,7 +24,7 @@ jobs:
       - name: Fetch Volume & Fees
         run: python fetch_volume_fees.py
 
-      - name: Commit & push updated CSV if changes exist
+     - name: Commit & push updated CSV if changes exist
   env:
     GH_PAT: ${{ secrets.GH_PAT }}
   run: |
