@@ -23,9 +23,9 @@ jobs:
         run: python fetch_markets.py
 
       - name: Commit & push data
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add data/markets.csv
-          git commit -m "Update markets.csv"
-          git push
+  run: |
+    git config user.name "github-actions"
+    git config user.email "actions@github.com"
+    git add data/markets.csv
+    git diff --cached --quiet || git commit -m "Update markets.csv"
+    git push
