@@ -1,35 +1,31 @@
-name: Fetch Extended Data
+import requests
+import pandas as pd
+from datetime import datetime
 
-on:
-  schedule:
-    - cron: "0 6 * * *"  # щодня о 06:00 UTC
-  workflow_dispatch:
+def fetch_volume_fees():
+    url = "https://api.extended.exchange/v1/info/markets"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json().get("data", [])
+    except Exception as e:
+        print(f"❌ Помилка API: {e}")
+        data = []
 
-jobs:
-  fetch:
-    runs-on: ubuntu-latest
+    records = []
+    for m in data:
+        stats = m.get("marketStats", {})
+        records.append({
+            "market": m.get("name"),
+            "dailyVolume": stats.get("dailyVolume"),
+            "dailyVolumeBase": stats.get("dailyVolumeBase"),
+            "timestamp": datetime.utcnow()
+        })
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    df = pd.DataFrame(records)
+    df.to_csv("data/volume_fees.csv", index=False)
+    print("✅ CSV збережено у data/volume_fees.csv")
+    print(df)
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install dependencies
-        run: pip install --upgrade pip && pip install -r requirements.txt
-
-      - name: Run fetch_volume_fees.py
-        run: python fetch_volume_fees.py
-
-      - name: Commit & push updated CSV if changes exist
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add data/volume_fees.csv
-          git diff --cached --quiet || git commit -m "Update volume_fees.csv"
-          git push https://x-access-token:${GH_PAT}@github.com/vadymdi/extended-dash.git HEAD:main
+if __name__ == "__main__":
+    fetch_volume_fees()
