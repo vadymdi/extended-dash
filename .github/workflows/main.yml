@@ -25,11 +25,11 @@ jobs:
         run: python fetch_volume_fees.py
 
       - name: Commit & push updated CSV if changes exist
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add data/volume_fees.csv
-          git diff --cached --quiet || git commit -m "Update volume_fees.csv"
-          git push https://x-access-token:${GH_PAT}@github.com/vadymdi/extended-dash.git HEAD:main
+  env:
+    GH_PAT: ${{ secrets.GH_PAT }}
+  run: |
+    git config user.name "github-actions"
+    git config user.email "actions@github.com"
+    git add data/volume_fees.csv
+    git diff --cached --quiet || git commit -m "Update volume_fees.csv"
+    git push https://x-access-token:${GH_PAT}@github.com/vadymdi/extended-dash.git HEAD:main
