@@ -8,8 +8,8 @@ def fetch_volume_fees():
     try:
         response = requests.get(API_URL, timeout=30)
         response.raise_for_status()
-        markets = response.json()
-        print(markets)
+        data = response.json()
+        markets = data.get("data", [])
     except Exception as e:
         print(f"❌ Помилка API: {e}")
         markets = []
@@ -18,9 +18,9 @@ def fetch_volume_fees():
     for m in markets:
         rows.append({
             "market": m.get("name"),
-            "dailyVolume": m.get("dailyVolume"),
-            "dailyVolumeBase": m.get("dailyVolumeBase"),
-            "fees": m.get("marketStats", {}).get("fees")
+            "dailyVolume": m.get("marketStats", {}).get("dailyVolume"),
+            "dailyVolumeBase": m.get("marketStats", {}).get("dailyVolumeBase"),
+            "fees": m.get("marketStats", {}).get("fees")  # може бути None
         })
 
     df = pd.DataFrame(rows)
